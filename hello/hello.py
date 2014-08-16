@@ -9,11 +9,8 @@ logging = app.logger
 @app.route('/')
 def hello():
     return 'nothing here'
-@app.route('/wordpress')
-def hello2():
-    return 'nothing here'
 
-@app.route('/wordpress/xmlrpc.php', methods=['POST'])
+@app.route('/xmlrpc.php', methods=['POST'])
 def xmlrpc():
     # request.data is the whole request
     args, func = xmlrpclib.loads(request.data)
@@ -22,10 +19,35 @@ def xmlrpc():
     result = None  
 
     if func == "mt.supportedMethods":
-        # FIXME: doesn't let me return a string, what's the correct syntax for supportedMethods?
-        result = (['metaWeblog.getRecentPosts'],)
+        result = (['metaWeblog.newPost', 'metaWeblog.getRecentPosts'],)
     elif func == 'metaWeblog.getRecentPosts':
-        result = ([],)
+        #result = ([],)
+        result = ([{'categories': ['Uncategorized'],
+            'custom_fields': [],
+            'dateCreated': xmlrpclib.DateTime('20140726T10:28:55'),
+            'date_created_gmt': xmlrpclib.DateTime('20140726T10:28:55'),
+            'date_modified': xmlrpclib.DateTime('20140727T00:04:26'),
+            'date_modified_gmt': xmlrpclib.DateTime('20140727T00:04:26'),
+            'description': 'short post with no title **bold** *italics...*',
+            'link': 'http://96.48.73.164/2014/07/26/posts/32',
+            'mt_allow_comments': 1,
+            'mt_allow_pings': 1,
+            'mt_excerpt': '',
+            'mt_keywords': '',
+            'mt_text_more': '',
+            'permaLink': 'http://96.48.73.164/2014/07/26/posts/32',
+            'post_status': 'publish',
+            'postid': '32',
+            'sticky': False,
+            'title': 'short post with no title **bold** *italics *',
+            'userid': '3',
+            'wp_author_display_name': 'Brendan',
+            'wp_author_id': '3',
+            'wp_more_text': '',
+            'wp_password': '',
+            'wp_post_format': 'chat',
+            'wp_post_thumbnail': '',
+            'wp_slug': '32'}],)
     elif func == 'metaWeblog.newPost':
         result = (['resulting post text:\n' + repr(args[2]['member'])],)
     else:
@@ -41,6 +63,9 @@ def xmlrpc():
         logging.error('unhandled case')
         result = xmlrpclib.Fault(2, "unhandled case")
 
-    return xmlrpclib.dumps(result, methodresponse=True)
+    returned_xml = xmlrpclib.dumps(result, methodresponse=True)
 
+    logging.info('RPC:' + request.data + "\n\n" + returned_xml)
+
+    return returned_xml
 
