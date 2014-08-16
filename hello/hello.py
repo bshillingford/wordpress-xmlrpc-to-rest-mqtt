@@ -9,8 +9,11 @@ logging = app.logger
 @app.route('/')
 def hello():
     return 'nothing here'
+@app.route('/wordpress')
+def hello2():
+    return 'nothing here'
 
-@app.route('/xmlrpc.php', methods=['POST'])
+@app.route('/wordpress/xmlrpc.php', methods=['POST'])
 def xmlrpc():
     # request.data is the whole request
     args, func = xmlrpclib.loads(request.data)
