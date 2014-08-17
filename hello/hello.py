@@ -7,6 +7,7 @@ import paho.mqtt.publish as publish
 
 app = Flask(__name__)
 logging = app.logger
+logging.setLevel(10)
 
 @app.route('/')
 def index():
@@ -27,7 +28,7 @@ def xmlrpc():
     elif func == 'metaWeblog.getRecentPosts':
         result = ([],)
 
-    elif func == 'metaWeblog.newPost':
+    elif func == 'metaWeblog.newPost':  #  TODO: diagnose error it's giving me... maybe postid
         title = args[3]['title']
         body = args[3]['description']
         try:
