@@ -1,16 +1,19 @@
 import os
 from flask import Flask
 from flask import request
+from .utils import returns_xml, parse_bool
 import xmlrpclib
+import paho.mqtt.publish as publish
 
 app = Flask(__name__)
 logging = app.logger
 
 @app.route('/')
-def hello():
+def index():
     return 'nothing here'
 
-@app.route('/xmlrpc.php', methods=['POST'])
+@app.route('/wordpress/xmlrpc.php', methods=['POST'])
+@returns_xml
 def xmlrpc():
     # request.data is the whole request
     args, func = xmlrpclib.loads(request.data)
@@ -20,36 +23,52 @@ def xmlrpc():
 
     if func == "mt.supportedMethods":
         result = (['metaWeblog.newPost', 'metaWeblog.getRecentPosts'],)
+
     elif func == 'metaWeblog.getRecentPosts':
-        #result = ([],)
-        result = ([{'categories': ['Uncategorized'],
-            'custom_fields': [],
-            'dateCreated': xmlrpclib.DateTime('20140726T10:28:55'),
-            'date_created_gmt': xmlrpclib.DateTime('20140726T10:28:55'),
-            'date_modified': xmlrpclib.DateTime('20140727T00:04:26'),
-            'date_modified_gmt': xmlrpclib.DateTime('20140727T00:04:26'),
-            'description': 'short post with no title **bold** *italics...*',
-            'link': 'http://96.48.73.164/2014/07/26/posts/32',
-            'mt_allow_comments': 1,
-            'mt_allow_pings': 1,
-            'mt_excerpt': '',
-            'mt_keywords': '',
-            'mt_text_more': '',
-            'permaLink': 'http://96.48.73.164/2014/07/26/posts/32',
-            'post_status': 'publish',
-            'postid': '32',
-            'sticky': False,
-            'title': 'short post with no title **bold** *italics *',
-            'userid': '3',
-            'wp_author_display_name': 'Brendan',
-            'wp_author_id': '3',
-            'wp_more_text': '',
-            'wp_password': '',
-            'wp_post_format': 'chat',
-            'wp_post_thumbnail': '',
-            'wp_slug': '32'}],)
+        result = ([],)
+
     elif func == 'metaWeblog.newPost':
-        result = (['resulting post text:\n' + repr(args[2]['member'])],)
+        title = args[3]['title']
+        body = args[3]['description']
+        try:
+            method, url = title.split(' ', 1)
+            method = method.upper()
+            if method not in ("GET", "POST", "PUT", "MQTT-PUB"):
+                raise ValueError("method '{}' is not a valid method or MQTT-PUB".format(method))
+
+            if method == "MQTT-PUB":
+                # Example format for first line of body: 
+                #     hostname=iot.eclipse.org; qos=2; topic=a/b/c/d; retain=false
+                # Remainder of lines are payload, whitespace is stripped.
+                info, payload = map(str.strip, body.split("\n", 1))
+                info = dict(tuple(i.strip().split('=', 1)) for i in info.split(';'))
+
+                if 'retain' in info:
+                    info['retain'] = parse_bool(info['retain'])
+                for int_param in ('qos', 'port'):
+                    if int_param in info:
+                        info[int_param] = int(info[int_param])
+
+                if 'hostname' not in info:
+                    raise Exception("missing hostname parameter in body")
+
+                publish.single(payload=payload, **info)
+                logging.info('MQTT-PUB: host={}, topic={}, payload={}, {}', info['hostname'], info['topic'], payload, info)
+
+            else:
+                # handle HTTP request
+                response = requests.request(method, url)
+
+                summary = ('{status_code} {reason} ({request.method} request to {url}). Response content:\n'
+                           '{content}'
+                           .format(content=response.text, **response.__dict__))
+
+                logging.info(summary)
+                result = (summary, )
+
+        except Exception as e:
+            result = e
+
     else:
         result = Exception('unsupported function "%s"' % func)
 
@@ -64,8 +83,7 @@ def xmlrpc():
         result = xmlrpclib.Fault(2, "unhandled case")
 
     returned_xml = xmlrpclib.dumps(result, methodresponse=True)
-
-    logging.info('RPC:' + request.data + "\n\n" + returned_xml)
-
+    logging.debug('RPC:' + request.data + "\n\n" + returned_xml)
     return returned_xml
+
 
