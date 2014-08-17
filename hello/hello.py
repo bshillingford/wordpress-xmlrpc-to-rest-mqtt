@@ -59,7 +59,7 @@ def xmlrpc():
 
                 publish.single(**info)
 
-                summary = 'MQTT-PUB: host={}, topic={}, payload={}, {}'.format(info['hostname'], info['topic'], body, info))
+                summary = 'MQTT-PUB: host={}, topic={}, payload={}, {}'.format(info['hostname'], info['topic'], body, info)
                 logging.info(summary)
                 result = (summary,)
 
