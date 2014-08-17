@@ -6,6 +6,7 @@ import xmlrpclib
 import paho.mqtt.publish as publish
 import traceback
 import sys
+import urlparse
 
 app = Flask(__name__)
 logging = app.logger
@@ -41,12 +42,16 @@ def xmlrpc():
                 raise ValueError("method '{}' is not a valid method or MQTT-PUB".format(method))
 
             if method == "MQTT-PUB":
-                # Example format for first line of body: 
-                #     hostname=iot.eclipse.org; qos=2; topic=a/b/c/d; retain=false
-                # Remainder of lines are payload, whitespace is stripped.
+                # Example format for URL: (topic a/b/c/d)
+                #     mqtt://iot.eclipse.org/a/b/c/d?qos=2&retain=false
+                # Body of message is payload.
                 print repr(body)
-                info, payload = map(str.strip, body.split("\n", 1))
-                info = dict(tuple(i.strip().split('=', 1)) for i in info.split(';'))
+                parsed = urlparse.urlparse(url)
+                info = dict(urlparse.parse_qsl(parsed.query))
+                info['port'] = parsed.port or 1883
+                info['hostname'] = parsed.hostname
+                info['topic'] = parsed.path[1:]  # omit first slash
+                info['payload'] = body
 
                 if 'retain' in info:
                     info['retain'] = parse_bool(info['retain'])
@@ -57,8 +62,8 @@ def xmlrpc():
                 if 'hostname' not in info:
                     raise Exception("missing hostname parameter in body")
 
-                publish.single(payload=payload, **info)
-                logging.info('MQTT-PUB: host={}, topic={}, payload={}, {}', info['hostname'], info['topic'], payload, info)
+                publish.single(**info)
+                logging.info('MQTT-PUB: host={}, topic={}, payload={}, {}', info['hostname'], info['topic'], body, info)
 
             else:
                 # handle HTTP request
