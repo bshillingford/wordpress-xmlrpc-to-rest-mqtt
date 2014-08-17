@@ -45,25 +45,23 @@ def xmlrpc():
                 # Example format for URL: (topic a/b/c/d)
                 #     mqtt://iot.eclipse.org/a/b/c/d?qos=2&retain=false
                 # Body of message is payload.
+
                 print repr(body)
+
                 parsed = urlparse.urlparse(url)
                 info = dict(urlparse.parse_qsl(parsed.query))
                 info['port'] = parsed.port or 1883
                 info['hostname'] = parsed.hostname
                 info['topic'] = parsed.path[1:]  # omit first slash
                 info['payload'] = body
-
-                if 'retain' in info:
-                    info['retain'] = parse_bool(info['retain'])
-                for int_param in ('qos', 'port'):
-                    if int_param in info:
-                        info[int_param] = int(info[int_param])
-
-                if 'hostname' not in info:
-                    raise Exception("missing hostname parameter in body")
+                info['retain'] = parse_bool(info.get('retain', 'False'))
+                info['qos'] = int(info.get('qos', 0))
 
                 publish.single(**info)
-                logging.info('MQTT-PUB: host={}, topic={}, payload={}, {}'.format(info['hostname'], info['topic'], body, info))
+
+                summary = 'MQTT-PUB: host={}, topic={}, payload={}, {}'.format(info['hostname'], info['topic'], body, info))
+                logging.info(summary)
+                result = (summary,)
 
             else:
                 # handle HTTP request
