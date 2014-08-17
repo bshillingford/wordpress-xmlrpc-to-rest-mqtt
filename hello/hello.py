@@ -7,6 +7,7 @@ import paho.mqtt.publish as publish
 
 app = Flask(__name__)
 logging = app.logger
+app.debug = True
 logging.setLevel(10)
 
 @app.route('/')
