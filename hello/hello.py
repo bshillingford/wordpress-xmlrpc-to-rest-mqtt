@@ -5,6 +5,7 @@ from .utils import returns_xml, parse_bool
 import xmlrpclib
 import paho.mqtt.publish as publish
 import traceback
+import sys
 
 app = Flask(__name__)
 logging = app.logger
