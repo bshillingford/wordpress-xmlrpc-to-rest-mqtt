@@ -68,6 +68,7 @@ def xmlrpc():
                 result = (summary, )
 
         except Exception as e:
+            traceback.print_exc(file=sys.stdout)
             logging.error(str(e))
             raise
 
