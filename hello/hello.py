@@ -44,6 +44,7 @@ def xmlrpc():
                 # Example format for first line of body: 
                 #     hostname=iot.eclipse.org; qos=2; topic=a/b/c/d; retain=false
                 # Remainder of lines are payload, whitespace is stripped.
+                print repr(body)
                 info, payload = map(str.strip, body.split("\n", 1))
                 info = dict(tuple(i.strip().split('=', 1)) for i in info.split(';'))
 
