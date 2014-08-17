@@ -68,7 +68,8 @@ def xmlrpc():
                 result = (summary, )
 
         except Exception as e:
-            result = e
+            logging.error(str(e))
+            raise
 
     else:
         result = Exception('unsupported function "%s"' % func)
