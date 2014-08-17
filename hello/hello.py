@@ -63,7 +63,7 @@ def xmlrpc():
                     raise Exception("missing hostname parameter in body")
 
                 publish.single(**info)
-                logging.info('MQTT-PUB: host={}, topic={}, payload={}, {}', info['hostname'], info['topic'], body, info)
+                logging.info('MQTT-PUB: host={}, topic={}, payload={}, {}'.format(info['hostname'], info['topic'], body, info))
 
             else:
                 # handle HTTP request
@@ -79,7 +79,7 @@ def xmlrpc():
         except Exception as e:
             traceback.print_exc(file=sys.stdout)
             logging.error(str(e))
-            raise
+            result = e
 
     else:
         result = Exception('unsupported function "%s"' % func)
