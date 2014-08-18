@@ -24,5 +24,5 @@ The URI is parsed as follows: `mqtt://{hostname}[:{port}]/{topic-name}[?{setting
 
 Settings must be URI-encoded as usual; the following are valid:
 * `qos` = `0` or `1` or `2` (see MQTT specifications for semantics)
-* `retain` = `true` or `false` (`1`, `T`, and `true` are all accepted as true)
+* `retain` = `true` or `false` (`1`, `T`, `t`, and `tRUe` are all accepted as true)
 * `protocol` = `MQTTv31` or `MQTTv311`
