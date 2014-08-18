@@ -23,6 +23,6 @@ Notice the URI format used to encode MQTT settings.
 The URI is parsed as follows: `mqtt://{hostname}[:{port}]/{topic-name}[?{settings}]`. The post's body is used as the payload and may be empty, but *note IFTTT may remove newlines or mess with whitespace*. Hence, I suggest using JSON if possible.
 
 Settings must be URI-encoded as usual; the following are valid:
-* `qos` = `0` or `1` or `2` (see MQTT specifications for semantics)
-* `retain` = `true` or `false` (`1`, `T`, `t`, and `tRUe` are all accepted as true)
-* `protocol` = `MQTTv31` or `MQTTv311`
+* `qos` = `0` or `1` or `2`, default is `0` (see MQTT specifications for semantics)
+* `retain` = `true` or `false`, default is `false` (`1`, `T`, `t`, and `tRUe` are all accepted as true)
+* `protocol` = `MQTTv31` or `MQTTv311`, latter is default
